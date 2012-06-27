@@ -1,0 +1,10 @@
+{
+  "name": "burndown-trello",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+      "async": "*"
+    , "dateformat": "*"
+    , "mongoose": "2.7.0"
+  }
+}

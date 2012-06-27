@@ -1,0 +1,11 @@
+module.exports = {
+    trello: {
+        APIKey : ""
+      , token: ""
+      , broadId : ""
+      , metadataListName: "metadata"
+    }
+  , mongodb: {
+        path : "mongodb://localhost/trelloSnapshot"
+  }
+};
