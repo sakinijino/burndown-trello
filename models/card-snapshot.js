@@ -10,8 +10,8 @@ var CardSnapshot = new Schema({
   , eop : {type: Schema.Types.Mixed } // estimation of points, {moduleName1: points1, moduleName2: points2}
 })
 
-CardSnapshot.methods = {
-  parseFromTrello: function(trelloCard, trelloChecklist) {
+CardSnapshot.method('parseFromTrello'
+  , function(trelloCard, trelloChecklist) {
     var matches, i
 
     this.trelloId= trelloCard.id
@@ -27,11 +27,10 @@ CardSnapshot.methods = {
       }
     }
     this.markModified("eop");
-  }
-}
+  })
 
-CardSnapshot.statics = {
-  sumOfPoints : function(snapshotArr) {
+CardSnapshot.static('sumOfPoints',
+  function(snapshotArr) {
     var result = {}
       , i, eop
       , moduleName
@@ -45,8 +44,7 @@ CardSnapshot.statics = {
     }
 
     return result
-  }
-}
+  })
 
 module.exports.CardSnapshot = mongoose.model('CardSnapshot', CardSnapshot)
 module.exports.CardSnapshotSchema = CardSnapshot

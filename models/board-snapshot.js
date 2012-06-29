@@ -10,7 +10,7 @@ var BoardSnapshot = new Schema({
   , cards : [CardSnapshot]
 })
 
-BoardSnapshot.methods.parseFromTrello = function(trelloBoard, trelloLists) {
+BoardSnapshot.method('parseFromTrello', function(trelloBoard, trelloLists) {
   var matches, i, list
 
   this.name = trelloBoard.name
@@ -21,18 +21,44 @@ BoardSnapshot.methods.parseFromTrello = function(trelloBoard, trelloLists) {
     this.lists[list.id] = list.name
   }
   this.markModified("list")
-}
-BoardSnapshot.methods.sumOfPoints = function() {
+})
+
+/* Sum Of Points Group by List
+ * rules: a obj of key-regexp which matches list names, e.g.
+   {
+       done: {
+           match: true
+         , regexp: /done|qa/i
+       }
+     , unfinished: {
+           match: false
+         , regexp: /done|qa/i
+     }
+} */
+BoardSnapshot.method("sopGroupByList", function(rules) {
   var cardGroups = {}
   , result = {}
   , i, card, listName
   , groupName
+  , rule, match
 
   for (i=0; i< this.cards.length; ++i) {
     card = this.cards[i]
     listName = this.lists[card.listTrelloId]
-    if (cardGroups[listName] === undefined) cardGroups[listName] = [card]
-    else cardGroups[listName].push(card)
+    if (!rules || rules.toString() !== '[object Object]') {
+      if (cardGroups[listName] === undefined) cardGroups[listName] = [card]
+      else cardGroups[listName].push(card)
+    } else {
+      for (groupName in rules) {
+        rule = rules[groupName]
+        match = listName.match(rule.regexp)
+        if (!rule.match) match = !match
+        if (match) {
+          if (cardGroups[groupName] === undefined) cardGroups[groupName] = [card]
+          else cardGroups[groupName].push(card)
+        }
+      }
+    }
   }
 
   for (groupName in cardGroups) {
@@ -40,7 +66,21 @@ BoardSnapshot.methods.sumOfPoints = function() {
   }
 
   return result
-}
+})
+BoardSnapshot.method("sopGroupByModule", function(rules) {
+  var listName, moduleName
+    , result = {}
+    , sop = this.sopGroupByList(rules)
+
+  for (listName in sop) {
+    for (moduleName in sop[listName]) {
+      if (result[moduleName] === undefined) result[moduleName] = {}
+      result[moduleName][listName] = sop[listName][moduleName]
+    }
+  }
+
+  return result
+})
 
 module.exports.BoardSnapshot = mongoose.model('BoardSnapshot', BoardSnapshot)
 module.exports.BoardSnapshotSchema = BoardSnapshot

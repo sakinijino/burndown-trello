@@ -1,40 +1,39 @@
 var mongoose = require("mongoose")
+  , df = require("dateformat")
   , config = require("../config.js")
 
 require("../models")
 var BoardSnapshot = mongoose.model('BoardSnapshot')
 
-function sumOfBoardPoints(err, b) {
-  var points, listName, moduleName
-    , result = {}
+function sumOfPoints(err, board) {
+  var sop
 
   if (err) throw new Error(err)
-  points = b.sumOfPoints()
 
-  for (listName in points) {
-    for (moduleName in points[listName]) {
-      if (result[moduleName] === undefined) {
-        result[moduleName] = {
-            done: 0
-          , unfinished: 0
-          , total: 0
-        }
+  console.info(board.name +": " + df(board.shotTime, "isoDateTime"))
+  sop = board.sopGroupByModule({
+      done: {
+          match: true
+        , regexp: /done/i
       }
-      if (listName.match(/done|qa/i) !== null) {
-        result[moduleName].done += points[listName][moduleName]
-      } else {
-        result[moduleName].unfinished += points[listName][moduleName]
+    , qa: {
+          match: true
+        , regexp: /qa/i
       }
-      result[moduleName].total += points[listName][moduleName]
-    }
-  }
-
-  console.info(result)
-
+    , unfinished: {
+          match: false
+        , regexp: /done|qa/i
+      }
+    , total: {
+          match: true
+        , regexp: /.*/i
+      }
+    })
+  console.info(sop)
   mongoose.connection.close()
   console.info("Mongodb connection closed.")
 }
 
 mongoose.connect(config.mongodb.path)
 console.info("Mongodb connected.")
-BoardSnapshot.findOne(sumOfBoardPoints)
+BoardSnapshot.findOne().sort("shotTime", -1).exec(sumOfPoints)
