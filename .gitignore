@@ -11,9 +11,12 @@ pids
 logs
 results
 
+/node_modules/.bin
 /node_modules/async
 /node_modules/dateformat
 /node_modules/mongoose
+/node_modules/express
+/node_modules/jade
 *.node
 *.a
 *.o
